@@ -1,11 +1,15 @@
-import axios from "axios"
+import axios, { AxiosError, AxiosResponse } from "axios"
 import express, { Request, Response } from "express"
 import testResultsModel from "../models"
 const testRoutes = express.Router()
 async function testApi(api:string) {
+   
+}
+testRoutes.post('/', async (req:Request,res:Response)=>{
+    const {api} = req.body
     const startingTime = Date.now()
     try {
-        const response = await axios.get(api)
+        const response = await  axios.get(api)
         const responsetime = Date.now() - startingTime
         const responseStatus = response.status
 
@@ -18,21 +22,21 @@ async function testApi(api:string) {
         })
 
       await  testResults.save()
-      return {
+      res.json({
         endPoint: api,
         statusCode: responseStatus,
         passed: responseStatus === 200,
         responseTime: responsetime,
-    };
+    }) ;
         
     } catch (error) {
-        console.log(error)
+        const axiosError = error as AxiosError
+        res.json({
+        message:axiosError
+        }).status(axiosError.status || 401)
+        
     }
-}
-testRoutes.post('/', async (req:Request,res:Response)=>{
-    const {api} = req.body
-    const response =  await testApi(api as string)
-    res.json(response)
+   
   
 })
 export default testRoutes
